@@ -7,6 +7,7 @@ import connectDB from './config/database';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import roommateRoutes from './routes/roommate';
+import marketplaceRoutes from './routes/marketplace';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/roommate', roommateRoutes);
+app.use('/api/marketplace', marketplaceRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

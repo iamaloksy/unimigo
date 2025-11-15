@@ -28,9 +28,10 @@ export const authenticateToken = async (
     }
 
     req.user = user;
-    req.universityId = user.universityId.toString();
+    req.universityId = user.universityId?._id?.toString() || user.universityId?.toString();
     next();
   } catch (error) {
+    console.error('Auth error:', error);
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
