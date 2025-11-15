@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import University from './models/University';
 import User from './models/User';
 import RoommatePost from './models/RoommatePost';
+import MarketplaceItem from './models/MarketplaceItem';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ const seedData = async () => {
     await University.deleteMany({});
     await User.deleteMany({});
     await RoommatePost.deleteMany({});
+    await MarketplaceItem.deleteMany({});
     console.log('Cleared existing data');
 
     // Create Universities
@@ -167,11 +169,103 @@ const seedData = async () => {
     const roommatePosts = await RoommatePost.insertMany(roommatePostsData);
     console.log('Created roommate posts:', roommatePosts.length);
 
+    // Create Marketplace Items for LPU
+    const marketplaceItemsData = [
+      {
+        sellerId: lpuUsers[0]._id,
+        universityId: universities[0]._id,
+        title: 'iPhone 13 Pro Max 256GB',
+        description: 'Excellent condition iPhone 13 Pro Max. Used for 6 months. All accessories included. No scratches. Battery health 98%.',
+        price: 75000,
+        category: 'electronics',
+        condition: 'like-new',
+        images: [],
+        contactInfo: { phone: '9876543210', email: 'rahul.kumar@lpu.in' },
+        available: true,
+      },
+      {
+        sellerId: lpuUsers[1]._id,
+        universityId: universities[0]._id,
+        title: 'Computer Networks Textbook - Tanenbaum',
+        description: 'Standard textbook for computer networks. 5th edition. Good condition with minimal highlights. Perfect for CSE students.',
+        price: 450,
+        category: 'books',
+        condition: 'good',
+        images: [],
+        contactInfo: { email: 'priya.sharma@lpu.in' },
+        available: true,
+      },
+      {
+        sellerId: lpuUsers[2]._id,
+        universityId: universities[0]._id,
+        title: 'Study Table with Chair',
+        description: 'Wooden study table with adjustable chair. Slightly used but in good condition. Perfect for dorm room.',
+        price: 2500,
+        category: 'furniture',
+        condition: 'good',
+        images: [],
+        contactInfo: { phone: '9123456789' },
+        available: true,
+      },
+      {
+        sellerId: lpuUsers[0]._id,
+        universityId: universities[0]._id,
+        title: 'MacBook Air M1 8GB/256GB',
+        description: 'MacBook Air M1 chip, 8GB RAM, 256GB SSD. Purchased in 2022. Minimal usage, excellent condition. Includes original charger and box.',
+        price: 62000,
+        category: 'electronics',
+        condition: 'like-new',
+        images: [],
+        contactInfo: { phone: '9876543210' },
+        available: true,
+      },
+      {
+        sellerId: lpuUsers[1]._id,
+        universityId: universities[0]._id,
+        title: 'Winter Jacket - North Face',
+        description: 'Original North Face winter jacket. Size M. Barely used. Perfect for cold weather.',
+        price: 3500,
+        category: 'clothing',
+        condition: 'like-new',
+        images: [],
+        contactInfo: { email: 'priya.sharma@lpu.in' },
+        available: true,
+      },
+      {
+        sellerId: lpuUsers[2]._id,
+        universityId: universities[0]._id,
+        title: 'Cricket Kit - Bat, Ball, Pads',
+        description: 'Complete cricket kit including Kashmir Willow bat, leather ball, pads, and gloves. Good condition.',
+        price: 4500,
+        category: 'sports',
+        condition: 'good',
+        images: [],
+        contactInfo: { phone: '9123456789', email: 'amit.singh@lpu.in' },
+        available: true,
+      },
+      {
+        sellerId: lpuUsers[0]._id,
+        universityId: universities[0]._id,
+        title: 'Gaming Mouse - Logitech G502',
+        description: 'Logitech G502 Hero gaming mouse. Excellent condition. Used for 3 months. All weights and cable included.',
+        price: 2800,
+        category: 'electronics',
+        condition: 'like-new',
+        images: [],
+        contactInfo: { phone: '9876543210' },
+        available: true,
+      },
+    ];
+
+    const marketplaceItems = await MarketplaceItem.insertMany(marketplaceItemsData);
+    console.log('Created marketplace items:', marketplaceItems.length);
+
     console.log('✅ Seed data created successfully!');
     console.log('\nSummary:');
     console.log(`Universities: ${universities.length}`);
     console.log(`Users: ${lpuUsers.length}`);
     console.log(`Roommate Posts: ${roommatePosts.length}`);
+    console.log(`Marketplace Items: ${marketplaceItems.length}`);
     console.log('\nTest Credentials:');
     console.log('Email: rahul.kumar@lpu.in');
     console.log('Email: priya.sharma@lpu.in');

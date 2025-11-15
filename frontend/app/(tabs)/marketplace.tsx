@@ -59,6 +59,7 @@ export default function MarketplaceScreen() {
 
   useEffect(() => {
     loadItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   const onRefresh = () => {
