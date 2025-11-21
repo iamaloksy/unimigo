@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "7b0d0b12-0c37-43de-ad72-0ac08a50fdbc"
+      }
+    },
+    "android": {
+      "package": "com.iamaloksy.unimigo"
+    }
+  }
+}

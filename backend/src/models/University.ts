@@ -10,6 +10,7 @@ export interface IUniversity extends Document {
   };
   adminEmail: string;
   subscriptionStatus: 'active' | 'inactive' | 'trial';
+  subscriptionExpiryDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +30,7 @@ const UniversitySchema: Schema = new Schema(
       enum: ['active', 'inactive', 'trial'],
       default: 'active',
     },
+    subscriptionExpiryDate: { type: Date },
   },
   { timestamps: true }
 );

@@ -10,10 +10,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import api from '../../src/config/api';
 
 type SharingType = '1BHK' | '2BHK' | '3BHK' | 'shared' | 'single';
@@ -22,7 +25,7 @@ type GenderPreference = 'male' | 'female' | 'any';
 export default function PostScreen() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [rent, setRent] = useState('');
@@ -31,6 +34,7 @@ export default function PostScreen() {
   const [genderPreference, setGenderPreference] = useState<GenderPreference>('any');
   const [phone, setPhone] = useState('');
   const [amenities, setAmenities] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>([]);
 
   const sharingTypes: SharingType[] = ['1BHK', '2BHK', '3BHK', 'shared', 'single'];
   const genderOptions: GenderPreference[] = ['male', 'female', 'any'];
@@ -42,6 +46,37 @@ export default function PostScreen() {
     } else {
       setAmenities([...amenities, amenity]);
     }
+  };
+
+  const pickImages = async () => {
+    if (images.length >= 5) {
+      Alert.alert('Limit reached', 'You can only add up to 5 images');
+      return;
+    }
+
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission required', 'Camera roll permission is required to add images');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      aspect: [4, 3],
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      const newImages = result.assets.map(asset => asset.base64).filter(Boolean) as string[];
+      setImages(prev => [...prev, ...newImages].slice(0, 5));
+    }
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    setImages(images.filter((_, index) => index !== indexToRemove));
   };
 
   const handleSubmit = async () => {
@@ -61,14 +96,14 @@ export default function PostScreen() {
         genderPreference,
         amenities,
         contactInfo: { phone },
-        images: [],
+        images: images,
       };
 
       await api.post('/roommate/posts', postData);
       Alert.alert('Success', 'Your listing has been posted!', [
         { text: 'OK', onPress: () => router.push('/(tabs)') },
       ]);
-      
+
       // Reset form
       setTitle('');
       setDescription('');
@@ -76,6 +111,7 @@ export default function PostScreen() {
       setAddress('');
       setPhone('');
       setAmenities([]);
+      setImages([]);
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.error || 'Failed to create post');
     } finally {
@@ -223,6 +259,33 @@ export default function PostScreen() {
             />
           </View>
 
+          <View style={styles.section}>
+            <Text style={styles.label}>Photos (up to 5)</Text>
+            <TouchableOpacity style={styles.addImageButton} onPress={pickImages}>
+              <Ionicons name="add-circle" size={24} color="#00B4D8" />
+              <Text style={styles.addImageText}>Add Photo</Text>
+            </TouchableOpacity>
+
+            {images.length > 0 && (
+              <View style={styles.imageGallery}>
+                {images.map((base64Image, index) => (
+                  <View key={index} style={styles.imageContainer}>
+                    <Image
+                      source={{ uri: `data:image/jpeg;base64,${base64Image}` }}
+                      style={styles.image}
+                    />
+                    <TouchableOpacity
+                      style={styles.removeImageButton}
+                      onPress={() => removeImage(index)}
+                    >
+                      <Ionicons name="close-circle" size={20} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
           <TouchableOpacity
             style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
@@ -353,5 +416,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  addImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#00B4D8',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    backgroundColor: '#F0F8FF',
+  },
+  addImageText: {
+    color: '#00B4D8',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  imageGallery: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  imageContainer: {
+    position: 'relative',
+    width: 80,
+    height: 80,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

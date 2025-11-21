@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import api from '../../src/config/api';
 import { useAuthStore } from '../../src/store/authStore';
 
@@ -20,55 +19,51 @@ export default function VerifyScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const email = params.email as string;
-  const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const setUser = useAuthStore((state) => state.setUser);
 
   const handleVerify = async () => {
-    if (!password || password.length < 6) {
-      Alert.alert('Error', 'Please enter a password (min 6 characters)');
+    if (!otp || otp.length !== 6) {
+      Alert.alert('Error', 'Please enter the 6-digit OTP');
       return;
     }
 
     setIsLoading(true);
     try {
-      const auth = getAuth();
-      let firebaseUser;
+      // Check if user exists first
+      const checkResponse = await api.post('/auth/check-user', { email });
+      const userExists = checkResponse.data.exists;
       
-      try {
-        // Try to sign in first
-        firebaseUser = await signInWithEmailAndPassword(auth, email, password);
-      } catch (signInError: any) {
-        if (signInError.code === 'auth/user-not-found') {
-          // Create new user
-          firebaseUser = await createUserWithEmailAndPassword(auth, email, password);
-        } else {
-          throw signInError;
+      if (userExists) {
+        // Existing user - verify OTP and login directly
+        const response = await api.post('/auth/verify-otp', {
+          email,
+          otp,
+        });
+
+        if (response.data.success && response.data.token) {
+          await setUser(
+            response.data.user,
+            response.data.token,
+            response.data.university
+          );
+
+          Alert.alert('Success', 'Login successful!');
+          router.replace('/(tabs)');
         }
+      } else {
+        // New user - redirect to registration with email and OTP
+        router.push({
+          pathname: '/register',
+          params: { email, otp },
+        });
       }
-
-      // Get Firebase ID token
-      const token = await firebaseUser.user.getIdToken();
-
-      // Verify with backend
-      const response = await api.post('/auth/verify-otp', {
-        email,
-        firebaseToken: token,
-        name: email.split('@')[0],
-      });
-
-      // Save user data
-      await setUser(
-        response.data.user,
-        response.data.token,
-        response.data.university
-      );
-
-      router.replace('/(tabs)');
     } catch (error: any) {
+      console.error('Verify error:', error);
       Alert.alert(
         'Error',
-        error.response?.data?.error || error.message || 'Verification failed'
+        error.response?.data?.error || 'Invalid or expired OTP'
       );
     } finally {
       setIsLoading(false);
@@ -82,15 +77,16 @@ export default function VerifyScreen() {
         style={styles.keyboardView}
       >
         <View style={styles.content}>
-          <Text style={styles.title}>Verify Your Email</Text>
-          <Text style={styles.subtitle}>Enter password for {email}</Text>
+          <Text style={styles.title}>Verify OTP</Text>
+          <Text style={styles.subtitle}>Enter the 6-digit code sent to {email}</Text>
 
           <TextInput
             style={styles.input}
-            placeholder="Password (min 6 characters)"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
+            placeholder="Enter 6-digit OTP"
+            value={otp}
+            onChangeText={setOtp}
+            keyboardType="number-pad"
+            maxLength={6}
             autoCapitalize="none"
             autoCorrect={false}
             editable={!isLoading}

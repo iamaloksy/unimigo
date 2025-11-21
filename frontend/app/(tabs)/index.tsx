@@ -83,31 +83,69 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => router.push('/roommate')}
-          >
-            <Ionicons name="search" size={24} color="#00B4D8" />
+          <Text style={styles.sectionTitle}>Features</Text>
+
+          <View style={styles.roommateCards}>
+            <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/roommate')}>
+              <Ionicons name="search" size={28} color="#00B4D8" />
+              <View style={styles.actionContent}>
+                <Text style={styles.actionTitle}>🔍 Find Roommate</Text>
+                <Text style={styles.actionSubtitle}>Browse roommate listings</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#CCC" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.actionCard, styles.postCard]} onPress={() => router.push('/post-roommate')}>
+              <Ionicons name="add-circle" size={28} color="#00B4D8" />
+              <View style={styles.actionContent}>
+                <Text style={styles.actionTitle}>📝 Post Listing</Text>
+                <Text style={styles.actionSubtitle}>Add new roommate listing</Text>
+              </View>
+              <Ionicons name="add" size={24} color="#00B4D8" />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.actionCard}onPress={() => router.push('/marketplace')}>
+            <Ionicons name="cart" size={28} color="#FF7A00" />
             <View style={styles.actionContent}>
-              <Text style={styles.actionTitle}>Find Roommate</Text>
-              <Text style={styles.actionSubtitle}>
-                Browse listings and find your perfect match
-              </Text>
+              <Text style={styles.actionTitle}>Buy & Sell</Text>
+              <Text style={styles.actionSubtitle}>Campus marketplace for books, cycles & more</Text>
             </View>
             <Ionicons name="chevron-forward" size={24} color="#CCC" />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => router.push('/post')}
-          >
-            <Ionicons name="add-circle" size={24} color="#FF7A00" />
+          <TouchableOpacity style={styles.actionCard}>
+            <Ionicons name="school" size={28} color="#9333EA" />
             <View style={styles.actionContent}>
-              <Text style={styles.actionTitle}>Post Listing</Text>
-              <Text style={styles.actionSubtitle}>
-                Share your room or search for roommates
-              </Text>
+              <Text style={styles.actionTitle}>Study Partner</Text>
+              <Text style={styles.actionSubtitle}>Find AI-matched study partners for your courses</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#CCC" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCard}>
+            <Ionicons name="megaphone" size={28} color="#10B981" />
+            <View style={styles.actionContent}>
+              <Text style={styles.actionTitle}>University Wall</Text>
+              <Text style={styles.actionSubtitle}>Campus feed with posts and announcements</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#CCC" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCard}>
+            <Ionicons name="chatbubbles" size={28} color="#3B82F6" />
+            <View style={styles.actionContent}>
+              <Text style={styles.actionTitle}>Messages</Text>
+              <Text style={styles.actionSubtitle}>Chat with verified students from your university</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#CCC" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/profile')}>
+            <Ionicons name="person" size={28} color="#8B5CF6" />
+            <View style={styles.actionContent}>
+              <Text style={styles.actionTitle}>My Profile</Text>
+              <Text style={styles.actionSubtitle}>Update your profile and preferences</Text>
             </View>
             <Ionicons name="chevron-forward" size={24} color="#CCC" />
           </TouchableOpacity>
@@ -126,6 +164,29 @@ export default function HomeScreen() {
               </View>
             </View>
           ))}
+        </View>
+
+        {/* Quick Stats */}
+        <View style={styles.quickStatsSection}>
+          <Text style={styles.sectionTitle}>Quick Stats</Text>
+          <View style={styles.quickStatsGrid}>
+            <View style={styles.quickStatCard}>
+              <Text style={styles.quickStatValue}>0</Text>
+              <Text style={styles.quickStatLabel}>Active Posts</Text>
+            </View>
+            <View style={styles.quickStatCard}>
+              <Text style={styles.quickStatValue}>0</Text>
+              <Text style={styles.quickStatLabel}>Connections</Text>
+            </View>
+            <View style={styles.quickStatCard}>
+              <Text style={styles.quickStatValue}>0</Text>
+              <Text style={styles.quickStatLabel}>Messages</Text>
+            </View>
+            <View style={styles.quickStatCard}>
+              <Text style={styles.quickStatValue}>0</Text>
+              <Text style={styles.quickStatLabel}>Matches</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -228,6 +289,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  roommateCards: {
+    marginBottom: 12,
+  },
   postCard: {
     backgroundColor: '#FFFFFF',
     padding: 16,
@@ -270,5 +334,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
+  },
+  quickStatsSection: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  quickStatsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  quickStatCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  quickStatValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#00B4D8',
+    marginBottom: 4,
+  },
+  quickStatLabel: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
   },
 });

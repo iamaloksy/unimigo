@@ -2,9 +2,13 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import University from '../models/University';
+import { sendOTPEmail } from '../config/email';
 import { auth } from '../config/firebase';
 
-// Request OTP - Firebase handles OTP sending
+// Store OTPs temporarily (in production use Redis)
+const otpStore = new Map<string, string>();
+
+// Request OTP
 export const requestOTP = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
@@ -37,10 +41,23 @@ export const requestOTP = async (req: Request, res: Response) => {
       });
     }
 
-    // Return success - client should handle Firebase OTP
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore.set(email, otp);
+    
+    // Auto-delete OTP after 10 minutes
+    setTimeout(() => otpStore.delete(email), 10 * 60 * 1000);
+
+    // Send OTP via email
+    try {
+      await sendOTPEmail(email, otp, university.name);
+    } catch (emailError) {
+      console.error('Email sending failed, but OTP is generated:', emailError);
+    }
+
     return res.json({
       success: true,
-      message: 'Please verify OTP sent to your email',
+      message: 'OTP sent to your email',
       universityId: university._id,
       universityName: university.name
     });
@@ -53,21 +70,20 @@ export const requestOTP = async (req: Request, res: Response) => {
 // Verify OTP and create/login user
 export const verifyOTP = async (req: Request, res: Response) => {
   try {
-    const { email, firebaseToken, name } = req.body;
+    const { email, otp, name, department, year, phone } = req.body;
 
-    if (!email || !firebaseToken) {
-      return res.status(400).json({ error: 'Email and Firebase token are required' });
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Email and OTP are required' });
     }
 
-    // Verify Firebase token
-    let decodedToken;
-    try {
-      decodedToken = await auth.verifyIdToken(firebaseToken);
-    } catch (firebaseError) {
-      console.log('Firebase verification skipped in dev mode');
-      // In development, we'll skip Firebase verification
-      decodedToken = { uid: `dev_${email}`, email };
+    // Verify OTP
+    const storedOTP = otpStore.get(email);
+    if (!storedOTP || storedOTP !== otp) {
+      return res.status(401).json({ error: 'Invalid or expired OTP' });
     }
+
+    // Delete used OTP
+    otpStore.delete(email);
 
     // Extract domain and find university
     const domain = email.split('@')[1];
@@ -81,12 +97,14 @@ export const verifyOTP = async (req: Request, res: Response) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Create new user
+      // Create new user with registration data
       user = await User.create({
         name: name || email.split('@')[0],
         email,
         universityId: university._id,
-        firebaseUid: decodedToken.uid,
+        department: department || undefined,
+        year: year || undefined,
+        phone: phone || undefined,
         trustScore: 50,
         verifiedBadge: true,
       });
@@ -94,9 +112,9 @@ export const verifyOTP = async (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, tokenVersion: user.tokenVersion },
       process.env.JWT_SECRET!,
-      { expiresIn: '30d' }
+      { expiresIn: '90d' }
     );
 
     return res.json({
@@ -107,6 +125,10 @@ export const verifyOTP = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         universityId: user.universityId,
+        department: user.department,
+        year: user.year,
+        phone: user.phone,
+        bio: user.bio,
         trustScore: user.trustScore,
         verifiedBadge: user.verifiedBadge,
         profileImage: user.profileImage,
@@ -137,6 +159,29 @@ export const getCurrentUser = async (req: any, res: Response) => {
     return res.json({ user });
   } catch (error) {
     console.error('Get current user error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Logout current user
+export const logout = async (req: any, res: Response) => {
+  try {
+    // Invalidate user's token by incrementing tokenVersion
+    await User.findByIdAndUpdate(req.user._id, { $inc: { tokenVersion: 1 } });
+    return res.json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Logout all users
+export const logoutAllUsers = async (req: Request, res: Response) => {
+  try {
+    await User.updateMany({}, { $inc: { tokenVersion: 1 } });
+    return res.json({ success: true, message: 'All users logged out' });
+  } catch (error) {
+    console.error('Logout all users error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

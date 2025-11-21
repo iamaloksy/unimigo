@@ -1,42 +1,105 @@
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-const API_URL = Constants.expoConfig?.extra?.apiUrl || process.env.EXPO_PUBLIC_BACKEND_URL;
+const API_URL = Platform.OS === 'web' ? 'http://localhost:8001' : 'http://192.168.217.1:8001';
 
-const api = axios.create({
-  baseURL: `${API_URL}/api`,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
+interface RequestConfig {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: any;
+}
+
+const api = {
+  get: async (url: string) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const fullUrl = `${API_URL}/api${url}`;
+      console.log('GET Request:', fullUrl);
+      
+      const response = await fetch(fullUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('API Error:', error);
+        if (error.logout) {
+          await AsyncStorage.clear();
+          window.location.href = '/';
+        }
+        throw { response: { data: error, status: response.status } };
+      }
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      return { data };
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
   },
-});
 
-// Add auth token to requests
-api.interceptors.request.use(
-  async (config) => {
+  post: async (url: string, data?: any) => {
     const token = await AsyncStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${API_URL}/api${url}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw { response: { data: error, status: response.status } };
     }
-    return config;
+    
+    return { data: await response.json() };
   },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
-// Handle response errors
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      await AsyncStorage.removeItem('authToken');
-      await AsyncStorage.removeItem('user');
-      // Trigger logout or redirect to login
+  put: async (url: string, data?: any) => {
+    const token = await AsyncStorage.getItem('authToken');
+    const response = await fetch(`${API_URL}/api${url}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw { response: { data: error, status: response.status } };
     }
-    return Promise.reject(error);
-  }
-);
+    
+    return { data: await response.json() };
+  },
+
+  delete: async (url: string) => {
+    const token = await AsyncStorage.getItem('authToken');
+    const response = await fetch(`${API_URL}/api${url}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw { response: { data: error, status: response.status } };
+    }
+    
+    return { data: await response.json() };
+  },
+};
 
 export default api;

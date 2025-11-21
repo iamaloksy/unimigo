@@ -35,6 +35,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="marketplace"
+        options={{
+          title: 'Buy & Sell',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cart" size={size} color={color} />
+          ),
+        }}
+      />
+      {/* <Tabs.Screen
         name="post"
         options={{
           title: 'Post',
@@ -42,7 +51,7 @@ export default function TabLayout() {
             <Ionicons name="add-circle" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="profile"
         options={{

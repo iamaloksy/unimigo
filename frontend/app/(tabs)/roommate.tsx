@@ -10,11 +10,13 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../src/config/api';
 import { RoommatePost } from '../../src/types';
 
 export default function RoommateScreen() {
+  const router = useRouter();
   const [posts, setPosts] = useState<RoommatePost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -165,6 +167,14 @@ export default function RoommateScreen() {
           </View>
         }
       />
+
+      {/* Floating Post Button */}
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => router.push('/post')}
+      >
+        <Ionicons name="add" size={30} color="#FFFFFF" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -323,5 +333,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#999',
     marginTop: 16,
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    backgroundColor: '#00B4D8',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
 });

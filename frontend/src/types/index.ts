@@ -82,3 +82,28 @@ export interface RoommateMatch {
   factors: Record<string, number>;
   preferences: RoommatePreferences;
 }
+
+export interface MarketplaceItem {
+  _id: string;
+  sellerId: {
+    _id: string;
+    name: string;
+    email: string;
+    profileImage?: string;
+    trustScore: number;
+  };
+  universityId: string;
+  title: string;
+  description: string;
+  price: number;
+  category: 'electronics' | 'books' | 'furniture' | 'clothing' | 'sports' | 'other';
+  condition: 'new' | 'like-new' | 'good' | 'fair';
+  images: string[];
+  contactInfo: {
+    phone?: string;
+    email?: string;
+  };
+  available: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

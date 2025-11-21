@@ -9,14 +9,16 @@ export default function SplashScreen() {
   const { isAuthenticated, isLoading } = useAuthStore();
 
   useEffect(() => {
-    console.log(process.env.EXPO_PUBLIC_BACKEND_URL, 'EXPO_PUBLIC_BACKEND_URL');
-    if (!isLoading) {
-      if (isAuthenticated) {
-        router.replace('/(tabs)');
-      } else {
-        router.replace('/auth/login');
+    const checkAuth = async () => {
+      if (!isLoading) {
+        if (isAuthenticated) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/auth/login');
+        }
       }
-    }
+    };
+    checkAuth();
   }, [isAuthenticated, isLoading]);
 
   return (

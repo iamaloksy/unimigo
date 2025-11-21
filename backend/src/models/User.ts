@@ -26,12 +26,15 @@ export interface IUser extends Document {
   universityId: mongoose.Types.ObjectId;
   department?: string;
   year?: number;
+  phone?: string;
+  bio?: string;
   trustScore: number;
   verifiedBadge: boolean;
   roommatePreferences?: IRoommatePreferences;
   studyPreferences?: IStudyPreferences;
   profileImage?: string;
   firebaseUid?: string;
+  tokenVersion: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,6 +50,8 @@ const UserSchema: Schema = new Schema(
     },
     department: { type: String },
     year: { type: Number },
+    phone: { type: String },
+    bio: { type: String },
     trustScore: { type: Number, default: 50, min: 0, max: 100 },
     verifiedBadge: { type: Boolean, default: false },
     roommatePreferences: {
@@ -72,6 +77,7 @@ const UserSchema: Schema = new Schema(
     },
     profileImage: { type: String },
     firebaseUid: { type: String },
+    tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

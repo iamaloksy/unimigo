@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import User from '../models/User';
+import mongoose from 'mongoose';
 
 // Get user profile
 export const getUserProfile = async (req: AuthRequest, res: Response) => {
@@ -27,7 +28,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
 
     // Ensure user can only update their own profile
-    if (req.user._id.toString() !== id) {
+    if ((req.user!._id as mongoose.Types.ObjectId).toString() !== id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
@@ -66,7 +67,7 @@ export const updateRoommatePreferences = async (req: AuthRequest, res: Response)
   try {
     const { id } = req.params;
 
-    if (req.user._id.toString() !== id) {
+    if ((req.user!._id as mongoose.Types.ObjectId).toString() !== id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
@@ -92,7 +93,7 @@ export const updateStudyPreferences = async (req: AuthRequest, res: Response) =>
   try {
     const { id } = req.params;
 
-    if (req.user._id.toString() !== id) {
+    if ((req.user!._id as mongoose.Types.ObjectId).toString() !== id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 

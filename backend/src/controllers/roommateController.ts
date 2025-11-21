@@ -3,13 +3,14 @@ import { AuthRequest } from '../middleware/auth';
 import RoommatePost from '../models/RoommatePost';
 import User from '../models/User';
 import cloudinary from '../config/cloudinary';
+import mongoose from 'mongoose';
 
 // Create roommate post
 export const createRoommatePost = async (req: AuthRequest, res: Response) => {
   try {
     const postData = {
       ...req.body,
-      authorId: req.user._id,
+      authorId: req.user!._id,
       universityId: req.universityId,
     };
 
@@ -68,9 +69,9 @@ export const getRoommatePosts = async (req: AuthRequest, res: Response) => {
         pages: Math.ceil(total / Number(limit)),
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get roommate posts error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 };
 
@@ -103,7 +104,7 @@ export const updateRoommatePost = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    if (post.authorId.toString() !== req.user._id.toString()) {
+    if (post.authorId.toString() !== (req.user!._id as mongoose.Types.ObjectId).toString()) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
@@ -131,7 +132,7 @@ export const deleteRoommatePost = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    if (post.authorId.toString() !== req.user._id.toString()) {
+    if (post.authorId.toString() !== (req.user!._id as mongoose.Types.ObjectId).toString()) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
@@ -146,20 +147,20 @@ export const deleteRoommatePost = async (req: AuthRequest, res: Response) => {
 // AI Roommate Matching
 export const matchRoommates = async (req: AuthRequest, res: Response) => {
   try {
-    const user = await User.findById(req.user._id);
-    
+    const user = await User.findById(req.user!._id);
+
     if (!user || !user.roommatePreferences) {
-      return res.status(400).json({ 
-        error: 'Please set your roommate preferences first' 
+      return res.status(400).json({
+        error: 'Please set your roommate preferences first'
       });
     }
 
     const userPrefs = user.roommatePreferences;
-    
+
     // Find all users in same university with roommate preferences
     const potentialRoommates = await User.find({
       universityId: req.universityId,
-      _id: { $ne: req.user._id },
+      _id: { $ne: req.user!._id },
       roommatePreferences: { $exists: true },
     });
 

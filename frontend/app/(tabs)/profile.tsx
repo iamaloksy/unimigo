@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,8 +25,12 @@ export default function ProfileScreen() {
         text: 'Logout',
         style: 'destructive',
         onPress: async () => {
-          await logout();
-          router.replace('/auth/login');
+          try {
+            await logout();
+          } catch (error) {
+            console.error('Logout error:', error);
+            Alert.alert('Error', 'Failed to logout');
+          }
         },
       },
     ]);
@@ -38,11 +44,15 @@ export default function ProfileScreen() {
 
       <ScrollView style={styles.content}>
         <View style={styles.profileSection}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.name.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          {user?.profileImage ? (
+            <Image source={{ uri: user.profileImage }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user?.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
           <Text style={styles.name}>{user?.name}</Text>
           <Text style={styles.email}>{user?.email}</Text>
           
@@ -82,7 +92,10 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/edit-profile')}
+          >
             <Ionicons name="person-outline" size={20} color="#333" />
             <Text style={styles.menuText}>Edit Profile</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
